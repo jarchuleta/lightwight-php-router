@@ -7,7 +7,6 @@
  * for use on lower environments where cakephp doesn't work
  *-------------------------------------------------------------*/
 
-
 //define APP_ROOT
 define('APP_ROOT' , dirname($_SERVER['SCRIPT_FILENAME']));
 
@@ -18,7 +17,7 @@ load_components();
 
 
 //
-//--- Router/Dispcher ---------------------------------------------------------
+//--- Router/dispatcher ---------------------------------------------------------
 //
 
 // GET the Request and build out controller
@@ -57,7 +56,6 @@ if (count($command) >= 1){
 	unset( $command[1]);
 }
 
-
 //compute the path to the file
 $target = APP_ROOT . '/controllers/' . $controller . '_controller.php';
 //modify page to fit naming convention
@@ -66,8 +64,10 @@ $class = ucfirst($controller) . '_Controller';
 //get target
 if (file_exists($target))
 {
+	
+	//includes the class file, stray markup can be coming from here
 	include_once($target);
-
+	
 	//check class
 	if (!class_exists($class))
 	{
@@ -78,9 +78,9 @@ if (file_exists($target))
 		
 		die("class does not exist! $expected");
 	}
-	
+		
 	//instantiate the appropriate class
-	$controllerClass = new $class;
+	$controllerClass = new $class($controller, $action);		
 	
 	//check if method exits
 	if (! is_callable( array($controllerClass, $action)  ) ){
@@ -90,8 +90,10 @@ if (file_exists($target))
 		die("action does not exist! Expected: $expected");
 	}
 	
-	//call		
+	//call the action
 	call_user_func_array(array($controllerClass, $action), $params);
+	//call the autorender, can be turned off from the controller	
+	$controllerClass->autoRender();
 }
 else
 {
@@ -111,8 +113,6 @@ else
 ?&gt;</pre>";
 	
 	
-	
-	
 }
 
 
@@ -122,9 +122,10 @@ else
 
 function __autoload($class_name)
 {
-
+	
 	$locations = array(
-			'controllers',
+			'framework',
+			'controllers',			
 			// additional locations
 	);
 
@@ -164,5 +165,7 @@ function load_components(){
 		 
 	}	
 }
+
+
 
 ?>
